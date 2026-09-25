@@ -1,0 +1,6 @@
+{
+  "name": "AERIS Mission Control",
+  "description": "Autonomous UAV Ground Control Station (GCS) with real-time telemetry, live map, AI perception, camera feeds, and mission planning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
