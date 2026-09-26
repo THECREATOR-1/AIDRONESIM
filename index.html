@@ -46,7 +46,7 @@ body{padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inse
 #sidebar{width:200px; flex-shrink:0; background:var(--panel); border-right:1px solid var(--border); display:flex; flex-direction:column; justify-content:space-between; position:sticky; top:52px; height:calc(100vh - 52px);}
 .nav{padding:10px 8px;}
 .nav-item{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:5px; color:var(--text2); font-size:12.5px; font-weight:500; cursor:pointer; border-left:2px solid transparent; margin-bottom:1px;}
-.nav-item:hover{color:var(--text); background:#151515;}
+.nav-item:hover{color:var(--text); background:#151515; border-left:2px solid var(--red-mission);}
 .nav-item.active{color:var(--text); border-left:2px solid var(--red-mission); background:#151515;}
 .nav-item .ic{width:14px; text-align:center; font-size:12px; opacity:.85;}
 .side-foot{padding:14px; border-top:1px solid var(--border); font-size:10.5px; color:var(--text3);}
@@ -297,16 +297,16 @@ input[type="range"].vertical-zoom-slider::-moz-range-thumb{
 <div id="shell">
   <div id="sidebar">
     <div class="nav">
-      <div class="nav-item active" onclick="jump('dashTop')"><span class="ic">▣</span><span class="lbl">Dashboard</span></div>
-      <div class="nav-item" onclick="jump('mapCard')"><span class="ic">◎</span><span class="lbl">Live Mission</span></div>
-      <div class="nav-item" onclick="jump('mapCard')"><span class="ic">▦</span><span class="lbl">Map</span></div>
-      <div class="nav-item" onclick="jump('aiCard')"><span class="ic">◆</span><span class="lbl">AI Detection</span></div>
-      <div class="nav-item" onclick="jump('camCard')"><span class="ic">▭</span><span class="lbl">Camera</span></div>
-      <div class="nav-item" onclick="jump('missionCard')"><span class="ic">↝</span><span class="lbl">Mission Plan</span></div>
-      <div class="nav-item" onclick="jump('teleCard')"><span class="ic">≋</span><span class="lbl">Telemetry</span></div>
-      <div class="nav-item" onclick="jump('logCard')"><span class="ic">☰</span><span class="lbl">Event Log</span></div>
-      <div class="nav-item" onclick="jump('healthCard')"><span class="ic">✚</span><span class="lbl">System Health</span></div>
-      <div class="nav-item" onclick="jump('settingsPanel')"><span class="ic">⚙</span><span class="lbl">Settings</span></div>
+      <div class="nav-item active" onclick="jump('dashTop', this)"><span class="ic">▣</span><span class="lbl">Dashboard</span></div>
+      <div class="nav-item" onclick="jump('mapCard', this)"><span class="ic">◎</span><span class="lbl">Live Mission</span></div>
+      <div class="nav-item" onclick="jump('mapCard', this)"><span class="ic">▦</span><span class="lbl">Map</span></div>
+      <div class="nav-item" onclick="jump('aiCard', this)"><span class="ic">◆</span><span class="lbl">AI Detection</span></div>
+      <div class="nav-item" onclick="jump('camCard', this)"><span class="ic">▭</span><span class="lbl">Camera</span></div>
+      <div class="nav-item" onclick="jump('missionCard', this)"><span class="ic">↝</span><span class="lbl">Mission Plan</span></div>
+      <div class="nav-item" onclick="jump('teleCard', this)"><span class="ic">≋</span><span class="lbl">Telemetry</span></div>
+      <div class="nav-item" onclick="jump('logCard', this)"><span class="ic">☰</span><span class="lbl">Event Log</span></div>
+      <div class="nav-item" onclick="jump('healthCard', this)"><span class="ic">✚</span><span class="lbl">System Health</span></div>
+      <div class="nav-item" onclick="jump('settingsPanel', this)"><span class="ic">⚙</span><span class="lbl">Settings</span></div>
     </div>
     <div class="side-foot">
       <b>AEGIS-UAV-01</b>
@@ -473,7 +473,11 @@ input[type="range"].vertical-zoom-slider::-moz-range-thumb{
 <div id="toasts"></div>
 
 <script>
-function jump(id){document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});}
+function jump(id, element){
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  element.classList.add('active');
+  document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+}
 
 // Theme
 document.getElementById('btnBlack').onclick=()=>{document.body.removeAttribute('data-theme');setActiveTheme('btnBlack');};
