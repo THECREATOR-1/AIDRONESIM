@@ -1,5 +1,5 @@
 /**
- * AERIS Ground Control Station (GCS) - Mission Control Application Logic
+ * AEGIS Ground Control Station (GCS) - Mission Control Application Logic
  * Integrates real-time telemetry, synthetic aerial camera feed (RGB / Thermal FLIR),
  * interactive tactical map waypoint planning, MAVLink packet inspection, audio annunciator,
  * payload drop operations, and mission flight logging.
@@ -142,6 +142,7 @@ class TacticalAudio {
 }
 
 const audio = new TacticalAudio();
+(window as unknown as { tacticalAudioClick?: () => void }).tacticalAudioClick = () => audio.click();
 
 // ==========================================
 // 2. SYNTHETIC CAMERA FEED (RGB & THERMAL FLIR)
@@ -657,7 +658,7 @@ function exportMissionLogs() {
   });
 
   const missionSummary = {
-    uav: 'AERIS-UAV-01',
+    uav: 'AEGIS-UAV-01',
     mission: 'SEARCH & RESCUE',
     exportTime: new Date().toISOString(),
     status: document.getElementById('missionStateText')?.textContent || 'AUTONOMOUS SEARCH',
@@ -822,8 +823,34 @@ function mountExtendedControls(cameraFeed: DroneCameraFeed) {
     exportBtn.innerHTML = '📥 EXPORT MISSION LOG';
     exportBtn.onclick = exportMissionLogs;
 
+    // Low Battery Test Toggle Button
+    const lowBatBtn = document.createElement('button');
+    lowBatBtn.className = 'btn secondary';
+    lowBatBtn.id = 'toggleLowBatBtn';
+    lowBatBtn.innerHTML = '⚡ SIM LOW BATT (14%)';
+    lowBatBtn.onclick = () => {
+      audio.click();
+      const currentBat = parseInt(document.getElementById('tBat')?.textContent || '82', 10);
+      const win = window as unknown as { sim?: { setBattery?: (v: number) => void } };
+      if (currentBat < 20) {
+        win.sim?.setBattery?.(82);
+        lowBatBtn.innerHTML = '⚡ SIM LOW BATT (14%)';
+        if (typeof (window as unknown as { toast?: (t: string, m: string) => void }).toast === 'function') {
+          (window as unknown as { toast: (t: string, m: string) => void }).toast('BATTERY RESTORED', 'Battery state reset to nominal 82%');
+        }
+      } else {
+        win.sim?.setBattery?.(14);
+        audio.warningTone();
+        lowBatBtn.innerHTML = '⚡ RESTORE BATT (82%)';
+        if (typeof (window as unknown as { toast?: (t: string, m: string) => void }).toast === 'function') {
+          (window as unknown as { toast: (t: string, m: string) => void }).toast('CRITICAL BATTERY', 'Battery level at 14% (< 20%) — Warning Pulse Active');
+        }
+      }
+    };
+
     // Insert payload before export or controls
     ctlGrid.insertBefore(payloadBtn, ctlGrid.firstChild);
+    ctlGrid.appendChild(lowBatBtn);
     ctlGrid.appendChild(exportBtn);
   }
 
@@ -983,6 +1010,10 @@ function mountExtendedControls(cameraFeed: DroneCameraFeed) {
       }
     } else if (e.key === 'p' || e.key === 'P') {
       deployRescuePayload(cameraFeed);
+    } else if (e.key === 'b' || e.key === 'B') {
+      document.getElementById('toggleLowBatBtn')?.click();
+    } else if (e.key === 'l' || e.key === 'L') {
+      document.getElementById('toggleTrailBtn')?.click();
     } else if (e.key === 'm' || e.key === 'M') {
       document.getElementById('tacticalAudioToggle')?.click();
     }
@@ -992,10 +1023,10 @@ function mountExtendedControls(cameraFeed: DroneCameraFeed) {
 // ==========================================
 // 8. BOOTSTRAP APPLICATION LOGIC
 // ==========================================
-function initAerisGCS() {
+function initAegisGCS() {
   const camWrap = document.getElementById('camWrap');
   if (!camWrap) {
-    console.warn('[AERIS GCS] camWrap element not found yet, retrying on DOM ready.');
+    console.warn('[AEGIS GCS] camWrap element not found yet, retrying on DOM ready.');
     return;
   }
 
@@ -1008,12 +1039,12 @@ function initAerisGCS() {
   // Mount Audio, MAVLink, and Extended GCS Controls
   mountExtendedControls(cameraFeed);
 
-  console.info('[AERIS GCS] Mission Control application logic loaded and operational.');
+  console.info('[AEGIS GCS] Mission Control application logic loaded and operational.');
 }
 
 // Initialize on DOM load
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initAerisGCS);
+  document.addEventListener('DOMContentLoaded', initAegisGCS);
 } else {
-  initAerisGCS();
+  initAegisGCS();
 }

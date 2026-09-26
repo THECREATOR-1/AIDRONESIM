@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AERIS // Mission Control</title>
+<title>AEGIS // Mission Control</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -92,9 +92,67 @@ canvas#mapCanvas{display:block; width:100%; height:340px;}
 .map-overlay .grid2{display:grid; grid-template-columns:1fr 1fr; gap:2px 14px;}
 .map-overlay .k{color:var(--text3); font-size:9px; letter-spacing:.05em;}
 .map-overlay .v{color:var(--text); font-weight:600;}
-.map-controls{position:absolute; bottom:8px; right:8px; display:flex; gap:5px;}
-.map-controls button{background:rgba(13,13,13,.85); border:1px solid var(--border); color:var(--text2); font-size:9.5px; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:600; letter-spacing:.04em;}
+.map-controls{position:absolute; bottom:8px; right:8px; display:flex; gap:5px; flex-wrap:wrap;}
+.map-controls button{background:rgba(13,13,13,.85); border:1px solid var(--border); color:var(--text2); font-size:9.5px; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:600; letter-spacing:.04em; transition:all .15s ease;}
 .map-controls button:hover{color:var(--text); border-color:#3a3a3a;}
+.map-controls button.active{background:rgba(177,18,18,.35); border-color:var(--red-mission); color:#fff; box-shadow:0 0 8px rgba(177,18,18,.3);}
+
+/* Vertical Zoom Slider Overlay */
+.map-zoom-slider-wrap{
+  position:absolute; top:8px; right:8px; z-index:10;
+  background:rgba(5,5,5,.8); border:1px solid var(--border); border-radius:5px;
+  padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:6px;
+  backdrop-filter:blur(3px); width:32px; user-select:none;
+}
+.zoom-slider-btn{
+  background:none; border:none; color:var(--text2); font-size:12px; font-weight:700;
+  cursor:pointer; line-height:1; width:20px; height:18px; display:flex; align-items:center; justify-content:center;
+  border-radius:3px; font-family:var(--mono); transition:all .15s;
+}
+.zoom-slider-btn:hover{color:#fff; background:rgba(255,255,255,.1);}
+.zoom-slider-val{
+  font-family:var(--mono); font-size:8.5px; font-weight:700; color:var(--text);
+  letter-spacing:.02em; text-align:center;
+}
+.zoom-track{
+  display:flex; justify-content:center; align-items:center; height:120px; width:20px; position:relative;
+}
+input[type="range"].vertical-zoom-slider{
+  -webkit-appearance:none;
+  appearance:none;
+  width:115px;
+  height:4px;
+  transform:rotate(-90deg);
+  background:var(--border);
+  border-radius:2px;
+  outline:none;
+  cursor:pointer;
+}
+input[type="range"].vertical-zoom-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:var(--red-mission);
+  border:1.5px solid #fff;
+  box-shadow:0 0 6px var(--red-alert);
+  cursor:pointer;
+  transition:transform .1s, background-color .1s;
+}
+input[type="range"].vertical-zoom-slider::-webkit-slider-thumb:hover{
+  transform:scale(1.2);
+  background:var(--red-alert);
+}
+input[type="range"].vertical-zoom-slider::-moz-range-thumb{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:var(--red-mission);
+  border:1.5px solid #fff;
+  box-shadow:0 0 6px var(--red-alert);
+  cursor:pointer;
+}
 
 /* Telemetry grid */
 .tele-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
@@ -144,6 +202,56 @@ canvas#mapCanvas{display:block; width:100%; height:340px;}
 .hlist .st{display:flex; align-items:center; gap:6px; font-size:10px; color:var(--text2); font-family:var(--mono);}
 .health-score{font-size:26px; font-weight:800; font-family:var(--mono); color:var(--green);}
 
+/* Battery low warning pulse animation */
+@keyframes battery-warning-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(214, 31, 31, 0.7);
+    background-color: rgba(214, 31, 31, 0.18);
+    border-color: rgba(214, 31, 31, 0.85);
+  }
+  50% {
+    box-shadow: 0 0 16px 4px rgba(214, 31, 31, 0.55);
+    background-color: rgba(214, 31, 31, 0.38);
+    border-color: #D61F1F;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(214, 31, 31, 0);
+    background-color: rgba(214, 31, 31, 0.18);
+    border-color: rgba(214, 31, 31, 0.85);
+  }
+}
+
+.hrow.battery-critical {
+  animation: battery-warning-pulse 1.2s infinite ease-in-out;
+  border-radius: 4px;
+  padding: 6px 8px !important;
+  border: 1px solid #D61F1F !important;
+  color: #ffb3b3 !important;
+}
+.hrow.battery-critical .st {
+  color: #ff5555 !important;
+  font-weight: 700;
+}
+.hrow.battery-critical .dot {
+  animation: dot-pulse 0.8s infinite alternate;
+}
+
+.tele-item.battery-critical {
+  animation: battery-warning-pulse 1.2s infinite ease-in-out;
+  border-radius: 5px;
+  padding: 4px 6px;
+  border: 1px solid rgba(214, 31, 31, 0.8);
+}
+.tele-item.battery-critical .v {
+  color: #ff4d4d !important;
+  text-shadow: 0 0 8px rgba(214, 31, 31, 0.8);
+}
+
+@keyframes dot-pulse {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(1.4); opacity: 1; box-shadow: 0 0 10px #D61F1F; }
+}
+
 /* log */
 .logwrap{max-height:230px; overflow-y:auto; font-family:var(--mono); font-size:10.5px;}
 .logrow{display:flex; gap:10px; padding:6px 0; border-bottom:1px solid var(--border-soft);}
@@ -173,7 +281,7 @@ canvas#mapCanvas{display:block; width:100%; height:340px;}
 <body>
 
 <div id="header">
-  <div class="brand">AERIS <span>// AUTONOMOUS UAV</span></div>
+  <div class="brand">AEGIS <span>// AUTONOMOUS UAV</span></div>
   <div class="center">MISSION CONTROL</div>
   <div class="right">
     <span><span class="dot dot-green"></span> SYSTEM ONLINE</span>
@@ -201,7 +309,7 @@ canvas#mapCanvas{display:block; width:100%; height:340px;}
       <div class="nav-item" onclick="jump('settingsPanel')"><span class="ic">⚙</span><span class="lbl">Settings</span></div>
     </div>
     <div class="side-foot">
-      <b>AERIS-UAV-01</b>
+      <b>AEGIS-UAV-01</b>
       MODE: AUTONOMOUS SEARCH
       <div class="row"><span class="label">STATUS</span><span><span class="dot dot-green" id="sideDot"></span> <span id="sideStatus">CONNECTED</span></span></div>
     </div>
@@ -239,12 +347,21 @@ canvas#mapCanvas{display:block; width:100%; height:340px;}
             <div><div class="k">HDG</div><div class="v" id="ovHdg">127°</div></div>
           </div>
         </div>
+        <div class="map-zoom-slider-wrap" title="Granular Zoom Control">
+          <button class="zoom-slider-btn" onclick="mapZoom(1)" title="Zoom in">+</button>
+          <div class="zoom-track">
+            <input type="range" class="vertical-zoom-slider" id="mapZoomSlider" min="0.6" max="2.4" step="0.05" value="1.0" oninput="onMapZoomSliderInput(this.value)">
+          </div>
+          <button class="zoom-slider-btn" onclick="mapZoom(-1)" title="Zoom out">−</button>
+          <div class="zoom-slider-val" id="zoomSliderVal">1.0x</div>
+        </div>
         <div class="map-controls">
           <button onclick="mapZoom(1)">ZOOM +</button>
           <button onclick="mapZoom(-1)">ZOOM −</button>
           <button onclick="mapCenter='drone'">CENTER DRONE</button>
           <button onclick="mapCenter='home'">HOME</button>
           <button onclick="mapCenter='fit'">FIT MISSION</button>
+          <button id="toggleTrailBtn" class="active" onclick="toggleTrail()">TRAIL: ON</button>
         </div>
       </div>
     </div>
@@ -397,12 +514,42 @@ const HEALTH=[
   ['AI MODEL','RUNNING','green'],['IMU','ONLINE','green'],['BATTERY','NORMAL','green'],
   ['COMPANION COMPUTER','ONLINE','green']
 ];
-function renderHealth(){
-  document.getElementById('healthList').innerHTML = HEALTH.map(([name,st,col])=>
-    `<div class="hrow"><span>${name}</span><span class="st"><span class="dot dot-${col}"></span> ${st}</span></div>`
-  ).join('');
+function renderHealth(batteryLevel=82){
+  const isBatteryLow = batteryLevel < 20;
+  document.getElementById('healthList').innerHTML = HEALTH.map(([name,st,col])=>{
+    let displaySt = st;
+    let dotCol = col;
+    let rowClass = 'hrow';
+
+    if(name === 'BATTERY'){
+      if(isBatteryLow){
+        displaySt = `LOW (${batteryLevel}%)`;
+        dotCol = 'red';
+        rowClass += ' battery-critical';
+      } else if(batteryLevel <= 30){
+        displaySt = `WARN (${batteryLevel}%)`;
+        dotCol = 'amber';
+      } else {
+        displaySt = 'NORMAL';
+        dotCol = 'green';
+      }
+    }
+
+    return `<div class="${rowClass}" id="${name==='BATTERY'?'healthBatteryRow':''}"><span>${name}</span><span class="st"><span class="dot dot-${dotCol}"></span> ${displaySt}</span></div>`;
+  }).join('');
+
+  const healthScoreEl = document.getElementById('healthScore');
+  if(healthScoreEl){
+    if(isBatteryLow){
+      healthScoreEl.textContent = '64%';
+      healthScoreEl.style.color = 'var(--red-alert)';
+    } else {
+      healthScoreEl.textContent = '98%';
+      healthScoreEl.style.color = 'var(--green)';
+    }
+  }
 }
-renderHealth();
+renderHealth(82);
 
 // Detections
 const DET=[['SURVIVOR',91],['PERSON',87],['THERMAL TARGET',76],['OBSTACLE',83]];
@@ -444,7 +591,42 @@ function addLog(tag,msg){
 // ---- MAP ----
 const canvas=document.getElementById('mapCanvas'), ctx=canvas.getContext('2d');
 let mapZoomLevel=1, mapCenter='drone';
-function mapZoom(d){mapZoomLevel=Math.max(0.6,Math.min(2.2,mapZoomLevel+d*0.2));}
+let showFlightTrail=true;
+
+function updateZoomSliderUI(val){
+  const slider = document.getElementById('mapZoomSlider');
+  const label = document.getElementById('zoomSliderVal');
+  if(slider && parseFloat(slider.value) !== val){
+    slider.value = String(val);
+  }
+  if(label){
+    label.textContent = val.toFixed(1) + 'x';
+  }
+}
+
+function mapZoom(d){
+  mapZoomLevel = Math.max(0.6, Math.min(2.4, Math.round((mapZoomLevel + d * 0.15) * 100) / 100));
+  updateZoomSliderUI(mapZoomLevel);
+  if(typeof window.tacticalAudioClick === 'function') window.tacticalAudioClick();
+}
+
+function onMapZoomSliderInput(valStr){
+  const parsed = parseFloat(valStr);
+  if(!isNaN(parsed)){
+    mapZoomLevel = Math.max(0.6, Math.min(2.4, parsed));
+    updateZoomSliderUI(mapZoomLevel);
+  }
+}
+
+function toggleTrail(){
+  showFlightTrail = !showFlightTrail;
+  const btn = document.getElementById('toggleTrailBtn');
+  if(btn){
+    btn.textContent = showFlightTrail ? 'TRAIL: ON' : 'TRAIL: OFF';
+    btn.classList.toggle('active', showFlightTrail);
+  }
+  if(typeof window.tacticalAudioClick === 'function') window.tacticalAudioClick();
+}
 const HOME={x:120,y:280};
 const WAYPOINTS=[{x:200,y:220},{x:340,y:150},{x:520,y:130},{x:680,y:200},{x:760,y:90}];
 const SEARCH_AREA={x:150,y:60,w:650,h:250};
@@ -478,11 +660,24 @@ function drawMap(state){
     ctx.fillStyle='#555'; ctx.beginPath(); ctx.arc(p.x,p.y,3,0,7); ctx.fill();
   });
 
-  // trail
-  if(state.trail.length>1){
-    ctx.strokeStyle='rgba(214,31,31,.6)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(state.trail[0].x,state.trail[0].y);
-    state.trail.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.stroke();
+  // permanent flight path trail
+  if(showFlightTrail && state.trail.length>1){
+    ctx.strokeStyle='rgba(214,31,31,.75)';
+    ctx.lineWidth=2;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.beginPath();
+    ctx.moveTo(state.trail[0].x,state.trail[0].y);
+    for(let i=1; i<state.trail.length; i++){
+      ctx.lineTo(state.trail[i].x,state.trail[i].y);
+    }
+    ctx.stroke();
+
+    // Flight path origin marker
+    ctx.fillStyle='rgba(214,31,31,.9)';
+    ctx.beginPath();
+    ctx.arc(state.trail[0].x, state.trail[0].y, 3, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   // home marker
@@ -534,7 +729,8 @@ const sim=(function(){
       state.heading = (Math.atan2(dx,-dy)*180/Math.PI+360)%360;
     }
     state.trail.push({x:state.pos.x,y:state.pos.y});
-    if(state.trail.length>160) state.trail.shift();
+    // Permanent flight path: keep all positions (capped at 15000 points to prevent memory overflow during multi-hour runs)
+    if(state.trail.length>15000) state.trail.shift();
 
     state.alt = 18 + Math.sin(tick/14)*2.2;
     state.speed = 4.5 + Math.sin(tick/9)*1.1;
@@ -559,6 +755,11 @@ const sim=(function(){
     document.getElementById('tHdg').innerHTML=Math.round(state.heading)+'<span class="u">°</span>';
     document.getElementById('tVs').innerHTML=(state.vs>=0?'+':'')+state.vs.toFixed(1)+'<span class="u"> m/s</span>';
     document.getElementById('tBat').innerHTML=state.battery+'<span class="u">%</span>';
+    const teleBatItem = document.getElementById('tBat')?.closest('.tele-item');
+    if(teleBatItem){
+      teleBatItem.classList.toggle('battery-critical', state.battery < 20);
+    }
+    renderHealth(state.battery);
     document.getElementById('tVolt').innerHTML=state.voltage.toFixed(1)+'<span class="u"> V</span>';
     document.getElementById('tGps').textContent=state.gps+' SAT';
     document.getElementById('tSig').textContent=Math.round(28+Math.random()*10)+' ms';
@@ -634,7 +835,13 @@ const sim=(function(){
   setInterval(step,220);
   render();
 
-  return {toggleRun,reset,simSurvivor,simAlert,returnHome};
+  function setBattery(val){
+    state.battery = Math.max(0, Math.min(100, Math.round(val)));
+    state.voltage = 12 + (state.battery/100)*4.2;
+    render();
+  }
+
+  return {toggleRun,reset,simSurvivor,simAlert,returnHome,setBattery};
 })();
 </script>
 <script type="module" src="/src/main.tsx"></script>
